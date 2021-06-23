@@ -4,7 +4,7 @@ library(tidyverse)
 library(lubridate)
 library(sf)
 
-gan_sf <- read_csv("https://www.globeatnight.org/2020data/GaN2020.csv") %>% 
+gan_sf <- read_csv("data/GaN2020.csv") %>% 
   st_as_sf(coords = c("Longitude", "Latitude"), crs = 4326)
 
 states <- st_read("data/us_states/cb_2018_us_state_5m.shp")
