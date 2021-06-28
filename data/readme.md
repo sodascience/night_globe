@@ -15,6 +15,13 @@ License: unknown
 ## Median radiance
 To create the file `median_radiance_2020.tif`, download the 10.8GB file `VNL_v2_npp_2020_global_vcmslcfg_c202101211500.median.tif.gz` from [`https://eogdata.mines.edu/nighttime_light/annual/v20/2020/`](https://eogdata.mines.edu/nighttime_light/annual/v20/2020/), and unzip it in the `data/` folder. Then, run the script `data/satellite_preproc.R` to create the median radiance for Pennsylvania only.
 
-Elvidge, C.D, Zhizhin, M., Ghosh T., Hsu FC, Taneja J. Annual time series of global VIIRS nighttime lights derived from monthly averages: 2012 to 2019. Remote Sensing 2021, 13(5), p.922, doi:10.3390/rs13050922
+
+License: unknown
+
+For description, see [`https://eogdata.mines.edu/products/vnl/`](https://eogdata.mines.edu/products/vnl/)
+
+Earth Observation Group, Payne Institute for Public Policy
 
 C. D. Elvidge, K. Baugh, M. Zhizhin, F. C. Hsu, and T. Ghosh, “VIIRS night-time lights,” International Journal of Remote Sensing, vol. 38, pp. 5860–5879, 2017.
+
+Elvidge, C.D, Zhizhin, M., Ghosh T., Hsu FC, Taneja J. Annual time series of global VIIRS nighttime lights derived from monthly averages: 2012 to 2019. Remote Sensing 2021, 13(5), p.922, doi:10.3390/rs13050922

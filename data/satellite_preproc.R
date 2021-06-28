@@ -19,3 +19,5 @@ ggplot() +
   scale_fill_viridis_c(trans = "log10", na.value = "transparent") +
   theme_minimal() +
   labs(fill = "Median radiance")
+
+ggsave("img/radiance.png")
