@@ -1,2 +1,4 @@
-# night_globe
- Correcting inferences in volunteer data using geospatial covariates
+# Inference from volunteer data: globe at night
+Correcting inferences in volunteer data using geospatial covariates
+
+![](/img/radiance.png)
