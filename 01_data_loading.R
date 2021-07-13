@@ -1,7 +1,6 @@
 # Loading data, filtering for creating the pennsylvania sf
 # Store sf in output folder
 library(tidyverse)
-library(lubridate)
 library(sf)
 
 gan_sf <- read_csv("data/GaN2020.csv") %>% 
