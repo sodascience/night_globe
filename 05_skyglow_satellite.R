@@ -56,7 +56,7 @@ rd_grid <-
 
 # write to file
 sg_rd_grid <- sg_grid %>% mutate(radiance = rd_grid$radiance)
-write_rds(sg_rd_grid, "data/grid_skyglow.rds")
+write_rds(sg_rd_grid, "output/grid_skyglow.rds")
 
 
 # bonus: plot to compare radiance and skyglow grid

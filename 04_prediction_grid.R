@@ -26,5 +26,5 @@ grid_penn <- st_intersection(
 grid_penn <- grid_penn %>% st_transform(4326) %>% st_sf()
 
 # store in data folder
-write_rds(grid_penn, "data/grid_penn.rds")
+write_rds(grid_penn, "output/grid_penn.rds")
 
