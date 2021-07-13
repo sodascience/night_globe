@@ -6,7 +6,7 @@ library(remotes)
 library(osmenrich)
 
 # Load data
-gan_state <- read_rds("output/gan_penn.rds")
+gan_state <- read_rds("output/gan_penn.rds") #naam nog veranderen
 st_coordinates(gan_state)
 
 # Make a copy to try things with
@@ -18,6 +18,7 @@ gan_enrich <- gan_copy %>%
     name = "motorway_1km",
     key = "highway",
     value = "motorway",
+    type = "lines",
     kernel = "gaussian",
     r = 1000
   )
@@ -27,6 +28,7 @@ gan_enrich <- gan_enrich %>%
     name = "motorway_10km",
     key = "highway",
     value = "motorway",
+    type = "lines",
     kernel = "gaussian",
     r = 10000
   )
@@ -36,6 +38,7 @@ gan_enrich <- gan_enrich %>%
     name = "motorway_25km",
     key = "highway",
     value = "motorway",
+    type = "lines",
     kernel = "gaussian",
     r = 25000
   )
@@ -46,6 +49,7 @@ gan_enrich <- gan_enrich %>%
     name = "trunk_1km",
     key = "highway",
     value = "trunk",
+    type = "lines",
     kernel = "gaussian",
     r = 1000
   )
@@ -55,6 +59,7 @@ gan_enrich <- gan_enrich %>%
     name = "trunk_10km",
     key = "highway",
     value = "trunk",
+    type = "lines",
     kernel = "gaussian",
     r = 10000
   )
@@ -64,6 +69,7 @@ gan_enrich <- gan_enrich %>%
     name = "trunk_25km",
     key = "highway",
     value = "trunk",
+    type = "lines",
     kernel = "gaussian",
     r = 25000
   )
@@ -74,6 +80,7 @@ gan_enrich <- gan_enrich %>%
     name = "primary_1km",
     key = "highway",
     value = "primary",
+    type = "lines",
     kernel = "gaussian",
     r = 1000
   )
@@ -83,6 +90,7 @@ gan_enrich <- gan_enrich %>%
     name = "primary_10km",
     key = "highway",
     value = "primary",
+    type = "lines",
     kernel = "gaussian",
     r = 10000
   )
@@ -92,6 +100,7 @@ gan_enrich <- gan_enrich %>%
     name = "primary_km25",
     key = "highway",
     value = "primary",
+    type = "lines",
     kernel = "gaussian",
     r = 25000
   )
@@ -102,6 +111,7 @@ gan_enrich <- gan_enrich %>%
     name = "secondary_1km",
     key = "highway",
     value = "secondary",
+    type = "lines",
     kernel = "gaussian",
     r = 1000
   )
@@ -111,6 +121,7 @@ gan_enrich <- gan_enrich %>%
     name = "secondary_10km",
     key = "highway",
     value = "secondary",
+    type = "lines",
     kernel = "gaussian",
     r = 10000
   )
@@ -120,6 +131,7 @@ gan_enrich <- gan_enrich %>%
     name = "secondary_25km",
     key = "highway",
     value = "secondary",
+    type = "lines",
     kernel = "gaussian",
     r = 25000
   )
@@ -130,6 +142,7 @@ gan_enrich <- gan_enrich %>%
     name = "tertiary_1km",
     key = "highway",
     value = "tertiary",
+    type = "lines",
     kernel = "gaussian",
     r = 1000
   )
@@ -139,6 +152,7 @@ gan_enrich <- gan_enrich %>%
     name = "tertiary_10km",
     key = "highway",
     value = "tertiary",
+    type = "lines",
     kernel = "gaussian",
     r = 10000
   )
@@ -148,6 +162,7 @@ gan_enrich <- gan_enrich %>%
     name = "tertiary_25km",
     key = "highway",
     value = "tertiary",
+    type = "lines",
     kernel = "gaussian",
     r = 25000
   )
@@ -158,6 +173,7 @@ gan_enrich <- gan_enrich %>%
     name = "unclassified_1km",
     key = "highway",
     value = "unclassified",
+    type = "lines",
     kernel = "gaussian",
     r = 1000
   )
@@ -167,6 +183,7 @@ gan_enrich <- gan_enrich %>%
     name = "unclassified_10km",
     key = "highway",
     value = "unclassified",
+    type = "lines",
     kernel = "gaussian",
     r = 10000
   )
@@ -176,6 +193,7 @@ gan_enrich <- gan_enrich %>%
     name = "unclassified_25km",
     key = "highway",
     value = "unclassified",
+    type = "lines",
     kernel = "gaussian",
     r = 25000
   )
