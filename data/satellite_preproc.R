@@ -17,10 +17,12 @@ write_stars(raster_data, dsn = "data/median_radiance_2020.tif")
 
 # bonus: create plot
 ggplot() + 
-  geom_stars(data = raster_data, downsample = 5) + 
+  geom_stars(data = raster_data, downsample = 2) + 
   geom_sf(data = state_geom, fill = "transparent", size = 1, colour = "white") +
   scale_fill_viridis_c(trans = "log10", na.value = "transparent") +
   theme_minimal() +
   labs(fill = "Median radiance")
 
 ggsave("img/radiance.png")
+
+
