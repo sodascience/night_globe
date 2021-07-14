@@ -2,18 +2,16 @@
 # Store sf in output folder
 library(tidyverse)
 library(sf)
-library(remotes)
 library(osmenrich)
 
 # Load data
-gan_state <- read_rds("output/gan_penn.rds") #naam nog veranderen
-st_coordinates(gan_state)
+gan_penn <- read_rds("output/gan_penn_sunmoon.rds")
 
-# Make a copy to try things with
-gan_copy <- gan_state
-
-# Add highway = motorway for a Gaussian kernel of 1km
-gan_enrich <- gan_copy %>%
+# Highways ----
+# All highways receive a 1, 10 or 25 km gaussian kernel
+## Motorway ----
+# 1km
+gan_enrich <- gan_penn %>%
   enrich_osm(
     name = "motorway_1km",
     key = "highway",
@@ -22,7 +20,8 @@ gan_enrich <- gan_copy %>%
     kernel = "gaussian",
     r = 1000
   )
-# Now for 10km
+
+# 10km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "motorway_10km",
@@ -32,7 +31,8 @@ gan_enrich <- gan_enrich %>%
     kernel = "gaussian",
     r = 10000
   )
-# And for 25km
+
+# 25km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "motorway_25km",
@@ -43,7 +43,8 @@ gan_enrich <- gan_enrich %>%
     r = 25000
   )
 
-# Add highway = trunk for a Gaussian kernel of 1km
+## Trunk ----
+# 1km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "trunk_1km",
@@ -53,7 +54,8 @@ gan_enrich <- gan_enrich %>%
     kernel = "gaussian",
     r = 1000
   )
-# Now for 10km
+
+# 10km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "trunk_10km",
@@ -63,7 +65,8 @@ gan_enrich <- gan_enrich %>%
     kernel = "gaussian",
     r = 10000
   )
-# And for 25km
+
+# 25km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "trunk_25km",
@@ -74,7 +77,8 @@ gan_enrich <- gan_enrich %>%
     r = 25000
   )
 
-# Add highway = primary for a Gaussian kernel of 1km
+## Primary ----
+# 1km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "primary_1km",
@@ -84,7 +88,8 @@ gan_enrich <- gan_enrich %>%
     kernel = "gaussian",
     r = 1000
   )
-# Now for 10km
+
+# 10km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "primary_10km",
@@ -94,7 +99,8 @@ gan_enrich <- gan_enrich %>%
     kernel = "gaussian",
     r = 10000
   )
-# And for 25km
+
+# 25km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "primary_km25",
@@ -105,7 +111,8 @@ gan_enrich <- gan_enrich %>%
     r = 25000
   )
 
-# Add highway = secondary for a Gaussian kernel of 1km
+## Secondary ----
+# 1km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "secondary_1km",
@@ -115,7 +122,8 @@ gan_enrich <- gan_enrich %>%
     kernel = "gaussian",
     r = 1000
   )
-# Now for 10km
+
+# 10km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "secondary_10km",
@@ -125,7 +133,8 @@ gan_enrich <- gan_enrich %>%
     kernel = "gaussian",
     r = 10000
   )
-# And for 25km
+
+# 25km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "secondary_25km",
@@ -136,7 +145,8 @@ gan_enrich <- gan_enrich %>%
     r = 25000
   )
 
-# Add highway = tertiary for a Gaussian kernel of 1km
+## Tertiary ----
+# 1km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "tertiary_1km",
@@ -146,7 +156,8 @@ gan_enrich <- gan_enrich %>%
     kernel = "gaussian",
     r = 1000
   )
-# Now for 10km
+
+# 10km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "tertiary_10km",
@@ -156,7 +167,8 @@ gan_enrich <- gan_enrich %>%
     kernel = "gaussian",
     r = 10000
   )
-# And for 25km
+
+# 25km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "tertiary_25km",
@@ -167,7 +179,8 @@ gan_enrich <- gan_enrich %>%
     r = 25000
   )
 
-# Add highway = unclassified for a Gaussian kernel of 1km
+## Unclassified ----
+# 1km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "unclassified_1km",
@@ -177,7 +190,8 @@ gan_enrich <- gan_enrich %>%
     kernel = "gaussian",
     r = 1000
   )
-# Now for 10km
+
+# 10km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "unclassified_10km",
@@ -187,7 +201,8 @@ gan_enrich <- gan_enrich %>%
     kernel = "gaussian",
     r = 10000
   )
-# And for 25km
+
+# 25km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "unclassified_25km",
@@ -198,7 +213,10 @@ gan_enrich <- gan_enrich %>%
     r = 25000
   )
 
-# Add the number of buildings for a Gaussian kernel of 1km
+
+# Buildings ----
+# Buildings receive a 1, 10 or 20 km gaussian kernel
+# 1km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "buildings_1km",
@@ -206,7 +224,8 @@ gan_enrich <- gan_enrich %>%
     kernel = "gaussian",
     r = 1000
   )
-# Now for 10km
+
+# 10km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "buildings_10km",
@@ -214,7 +233,8 @@ gan_enrich <- gan_enrich %>%
     kernel = "gaussian",
     r = 10000
   )
-# And for 20km
+
+# 20km
 gan_enrich <- gan_enrich %>%
   enrich_osm(
     name = "buildings_20km",
@@ -223,5 +243,6 @@ gan_enrich <- gan_enrich %>%
     r = 20000
   )
 
+# Write output ----
 # Store as gan_penn_geoenrich.rds
 write_rds(gan_enrich, "output/gan_penn_geoenrich.rds")
