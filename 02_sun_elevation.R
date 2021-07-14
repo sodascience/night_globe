@@ -16,7 +16,7 @@ gan_penn <- read_rds("output/gan_penn.rds")
 
 # prepare dataset for input to suncalc package
 suncalc_data <- tibble(
-  date = paste(gan_penn$LocalDate, gan_penn$LocalTime),
+  date = paste(gan_penn$UTDate, gan_penn$UTTime),
   lat  = st_coordinates(gan_penn)[,2],
   lon  = st_coordinates(gan_penn)[,1]
 )
