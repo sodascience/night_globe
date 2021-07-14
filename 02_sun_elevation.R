@@ -27,17 +27,17 @@ gan_penn_sunmoon <-
   mutate(
     # sun azimuth in radians (direction along the horizon, measured from south to west)
     # e.g. 0 is south and pi * 3/4 is northwest
-    sunazimuth   = getSunlightPosition(data = suncalc_data)$azimuth,
+    sun_azimuth   = getSunlightPosition(data = suncalc_data)$azimuth,
     # sun altitude above the horizon in radians, 
     # e.g. 0 at the horizon and pi/2 at the zenith (straight over your head)
-    sunaltitude  = getSunlightPosition(data = suncalc_data)$altitude,
+    sun_altitude  = getSunlightPosition(data = suncalc_data)$altitude,
     # illuminated fraction of the moon; varies from 0.0 (new moon) to 1.0 (full moon)
-    moonfraction = getMoonIllumination(date = suncalc_data$date)$fraction,
+    moon_fraction = getMoonIllumination(date = suncalc_data$date)$fraction,
     # moon altitude above the horizon in radians
     # e.g. 0 at the horizon and pi/2 at the zenith (straight over your head)
-    moonaltitude = getMoonPosition(data = suncalc_data)$altitude,
+    moon_altitude = getMoonPosition(data = suncalc_data)$altitude,
     # compute moon illumination feature
-    moonillumination = ifelse(moonaltitude > 0, moonfraction, 0)
+    moon_illumination = ifelse(moonaltitude > 0, moonfraction, 0)
   )
 
 # write to output folder
