@@ -37,7 +37,7 @@ gan_penn_sunmoon <-
     # e.g. 0 at the horizon and pi/2 at the zenith (straight over your head)
     moon_altitude = getMoonPosition(data = suncalc_data)$altitude,
     # compute moon illumination feature
-    moon_illumination = ifelse(moonaltitude > 0, moonfraction, 0)
+    moon_illumination = ifelse(moon_altitude > 0, moon_fraction, 0)
   )
 
 # write to output folder
