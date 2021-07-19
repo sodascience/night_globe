@@ -5,13 +5,17 @@ library(sf)
 library(osmenrich)
 
 # Load data
-gan_penn <- read_rds("output/gan_penn_sunmoon.rds")
+gan_grid <- read_rds("output/grid_skyglow.rds")
+gan_cent <- gan_grid
+
+# Transform polygons into centroids (added column)
+gan_cent$geom2 <- st_centroid(st_geometry(gan_cent))
 
 # Highways ----
 # All highways receive a 1, 10 or 25 km gaussian kernel
 ## Motorway ----
 # 1km
-gan_enrich <- gan_penn %>%
+grid_enrich <- gan_cent %>%
   enrich_osm(
     name = "motorway_1km",
     key = "highway",
@@ -22,7 +26,7 @@ gan_enrich <- gan_penn %>%
   )
 
 # 10km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "motorway_10km",
     key = "highway",
@@ -33,7 +37,7 @@ gan_enrich <- gan_enrich %>%
   )
 
 # 25km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "motorway_25km",
     key = "highway",
@@ -45,7 +49,7 @@ gan_enrich <- gan_enrich %>%
 
 ## Trunk ----
 # 1km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "trunk_1km",
     key = "highway",
@@ -56,7 +60,7 @@ gan_enrich <- gan_enrich %>%
   )
 
 # 10km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "trunk_10km",
     key = "highway",
@@ -67,7 +71,7 @@ gan_enrich <- gan_enrich %>%
   )
 
 # 25km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "trunk_25km",
     key = "highway",
@@ -79,7 +83,7 @@ gan_enrich <- gan_enrich %>%
 
 ## Primary ----
 # 1km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "primary_1km",
     key = "highway",
@@ -90,7 +94,7 @@ gan_enrich <- gan_enrich %>%
   )
 
 # 10km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "primary_10km",
     key = "highway",
@@ -101,9 +105,9 @@ gan_enrich <- gan_enrich %>%
   )
 
 # 25km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
-    name = "primary_25km",
+    name = "primary_km25",
     key = "highway",
     value = "primary",
     type = "lines",
@@ -113,7 +117,7 @@ gan_enrich <- gan_enrich %>%
 
 ## Secondary ----
 # 1km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "secondary_1km",
     key = "highway",
@@ -124,7 +128,7 @@ gan_enrich <- gan_enrich %>%
   )
 
 # 10km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "secondary_10km",
     key = "highway",
@@ -135,7 +139,7 @@ gan_enrich <- gan_enrich %>%
   )
 
 # 25km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "secondary_25km",
     key = "highway",
@@ -147,7 +151,7 @@ gan_enrich <- gan_enrich %>%
 
 ## Tertiary ----
 # 1km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "tertiary_1km",
     key = "highway",
@@ -158,7 +162,7 @@ gan_enrich <- gan_enrich %>%
   )
 
 # 10km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "tertiary_10km",
     key = "highway",
@@ -169,7 +173,7 @@ gan_enrich <- gan_enrich %>%
   )
 
 # 25km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "tertiary_25km",
     key = "highway",
@@ -181,7 +185,7 @@ gan_enrich <- gan_enrich %>%
 
 ## Unclassified ----
 # 1km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "unclassified_1km",
     key = "highway",
@@ -192,7 +196,7 @@ gan_enrich <- gan_enrich %>%
   )
 
 # 10km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "unclassified_10km",
     key = "highway",
@@ -203,7 +207,7 @@ gan_enrich <- gan_enrich %>%
   )
 
 # 25km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "unclassified_25km",
     key = "highway",
@@ -217,7 +221,7 @@ gan_enrich <- gan_enrich %>%
 # Buildings ----
 # Buildings receive a 1, 10 or 20 km gaussian kernel
 # 1km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "buildings_1km",
     key = "building",
@@ -226,7 +230,7 @@ gan_enrich <- gan_enrich %>%
   )
 
 # 10km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "buildings_10km",
     key = "building",
@@ -235,7 +239,7 @@ gan_enrich <- gan_enrich %>%
   )
 
 # 20km
-gan_enrich <- gan_enrich %>%
+grid_enrich <- grid_enrich %>%
   enrich_osm(
     name = "buildings_20km",
     key = "building",
@@ -243,6 +247,9 @@ gan_enrich <- gan_enrich %>%
     r = 20000
   )
 
+# Remove centroids as geometry column
+gan_grid_enrich <- grid_enrich[, -4]
+
 # Write output ----
-# Store as gan_penn_geoenrich.rds
-write_rds(gan_enrich, "output/gan_penn_geoenrich.rds")
+# Store as gan_grid_geoenrich.rds
+write_rds(gan_grid_enrich, "output/gan_grid_geoenrich.rds")
