@@ -12,7 +12,7 @@ library(progress)
 library(patchwork)
 
 radiance_raster <- read_stars("data/median_radiance_2020.tif", proxy = TRUE)
-prediction_grid <- read_rds("data/grid_penn.rds")
+prediction_grid <- read_rds("output/grid_penn.rds")
 
 # function to compute skyglow over a grid based on radiance raster data (stars obj)
 # based on walker's (1977) law
