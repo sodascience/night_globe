@@ -1,6 +1,7 @@
 library(tidyverse)
 library(sf)
-library(gstat)
+
+#pas 10 aan, commit 10, pull 10 in main
 
 # Load data
 gan_grid_means <- read_rds("output/gan_grid_geoenrich.rds")
@@ -29,25 +30,8 @@ means <- no_na %>%
 gan_grid_means$geom2 <- st_centroid(gan_grid_means$geometry)
 gan_grid_means$wthn <- as.integer(st_within(gan_grid_means$geom2, gan_grid_means$geometry))
 gan_grid_means$grid_mean[gan_grid_means$wthn %in% means$wthn] <- means$grid_mean
+#sf_join
 
 # Check if there are no more values than means
 length(gan_grid_means$grid_mean[!is.na(gan_grid_means$grid_mean)]) #183!
 
-# With observations
-gan_grid_means %>% 
-  mutate(pred = grid_pred_cc$var1.pred, var = grid_pred_cc$var1.var) %>% 
-  ggplot() + 
-  geom_sf(color = NA, mapping = aes(fill = gan_grid_means$grid_mean)) + 
-  geom_sf(data = gan_penn_means, mapping = aes(colour = sky_brightness)) +
-  labs(fill = "grid_mean") +
-  scale_fill_viridis_c(direction = -1, limits = c(1, 7)) + #put them on the same scale
-  scale_colour_viridis_c(direction = -1)
-
-# Only the averaged squares in the grid, without the observations
-gan_grid_means %>% 
-  mutate(pred = grid_pred_cc$var1.pred, var = grid_pred_cc$var1.var) %>% 
-  ggplot() + 
-  geom_sf(color = NA, mapping = aes(fill = gan_grid_means$grid_mean)) +
-  labs(fill = "grid_mean") +
-  scale_fill_viridis_c(direction = -1, limits = c(1, 7)) + #scale needs to be like this, otherwise some boxes stay grey
-  scale_colour_viridis_c(direction = -1)
