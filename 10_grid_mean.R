@@ -29,9 +29,7 @@ means <- no_na %>%
 # Get the means to their respective grid cells and put NA in all others
 gan_grid_means$geom2 <- st_centroid(gan_grid_means$geometry)
 gan_grid_means$wthn <- as.integer(st_within(gan_grid_means$geom2, gan_grid_means$geometry))
-gan_grid_means$grid_mean[gan_grid_means$wthn %in% means$wthn] <- means$grid_mean
-#sf_join
+gan_grid_means <- st_join(gan_grid_means, means)
 
 # Check if there are no more values than means
 length(gan_grid_means$grid_mean[!is.na(gan_grid_means$grid_mean)]) #183!
-
