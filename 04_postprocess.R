@@ -19,8 +19,9 @@ gan_sf_final <-
   ) %>% 
   select(sky_brightness = LimitingMag, cloud_cover = CloudCover, obs_date = UTDate, 
          obs_time = UTTime, elevation_mtr = `Elevation(m)`, sun_altitude, 
-         moon_illumination, starts_with("motorway"), starts_with("buildings"), 
-         geometry)
+         moon_illumination, starts_with("motorway"), starts_with("buildings"),
+         starts_with("trunk"),starts_with("primary"),starts_with("secondary"),
+         starts_with("tertiary"),geometry)
 
 # save data
 write_rds(gan_sf_final, "output/gan_penn_processed.rds")

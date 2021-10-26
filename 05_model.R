@@ -9,6 +9,7 @@ source("01_data_loading.R" )
 source("02_sun_elevation.R" )
 source("03_geoenrichment.R" )
 source("04_postprocess.R" )
+source("05_grid_mean.R")
  
 # Load data
 gan_grid <- read_rds("output/gan_grid_geoenrich.rds")
@@ -92,62 +93,14 @@ gan_grid %>%
   geom_sf(data = gan_penn, mapping = aes(colour = sky_brightness)) +
   scale_fill_viridis_c(direction = -1, limits = c(1, 7)) +
   scale_colour_viridis_c(direction = -1)
-######################
+ggsave("img/empty plot just using nightglobe observations.png")
 
-# A model with covariates
-emp_vario_cov <- variogram(sky_brightness~motorway_1km+motorway_10km+motorway_25km+
-                             buildings_1km+buildings_10km+buildings_20km,
-                           gan_penn
-)
-plot(emp_vario_cov)
-# Estimate a spherical model for the variogram
-mod_vario_cov <- fit.variogram(
-  emp_vario_cov, 
-  vgm(psill = 1.5, "Sph", nugget = 1), 
-#  fit.method = 2
-)
+########## 
+#kriging with only cloud cover
 
-# simple model for now. Needs to be replaced with the prediction data in gan_grid
-grid_pred_cov <- krige(
-  formula   = sky_brightness ~cloud_cover +motorway_1km,
-  locations = gan_penn %>% st_jitter(0.00001), 
-  newdata   = gan_grid %>% mutate(geometry = st_centroid(geometry), cloud_cover = "clear",
-                                  motorway_1km=0), 
-  model     = mod_vario_cov,
-  nmax      = 100,
-  debug.level = -1
-)
-
-# PL: how to predict the newdata?
-
-grid_pred_cov <- krige(
-  formula   = sky_brightness ~cloud_cover +motorway_1km+motorway_10km+motorway_25km+
-            buildings_1km+buildings_10km+buildings_20km,
-  locations = gan_penn %>% st_jitter(0.00001), 
-  newdata   = gan_grid %>% mutate(geometry = st_centroid(geometry), cloud_cover = "clear",
-                                  motorway_1km=0,motorway_10km=0,motorway_25km=0,
-                                    buildings_1km=0,buildings_10km=0,buildings_20km=0), 
-  model     = mod_vario_cov,
-  nmax      = 100,
-  debug.level = -1
-)
-
-
-grid_pred_cov
-gan_grid %>% 
-  mutate(pred = grid_pred_cov$var1.pred, var = grid_pred_cov$var1.var) %>% 
-  ggplot() + 
-  geom_sf(color = NA, mapping = aes(fill = pred)) + 
-  geom_sf(data = gan_penn, mapping = aes(colour = sky_brightness)) +
-  scale_fill_viridis_c(direction = -1) +
-  scale_colour_viridis_c(direction = -1)
-
-##########################
-
-# kriging with cloud cover
 # Create an empirical variogram 
 emp_vario_cc <- variogram(
-  sky_brightness~cloud_cover, 
+  sky_brightness~cloud_cover+moon_illumination+sun_altitude, 
   gan_penn
 )
 
@@ -162,18 +115,152 @@ mod_vario_cc <- fit.variogram(
 grid_pred_cc <- krige(
   formula   = sky_brightness ~ cloud_cover,
   locations = gan_penn %>% st_jitter(0.00001), 
-  newdata   = gan_grid %>% mutate(geometry = st_centroid(geometry), cloud_cover = "clear"), 
+  newdata   = gan_grid %>% mutate(geometry = st_centroid(geometry), cloud_cover = "clear",
+                                  moon_illumination=0,sun_altitude=-1), 
   model     = mod_vario_cc,
   nmax      = 200,
   debug.level = -1
 )
-grid_pred_cc
-
 
 gan_grid %>% 
   mutate(pred = grid_pred_cc$var1.pred, var = grid_pred_cc$var1.var) %>% 
   ggplot() + 
   geom_sf(color = NA, mapping = aes(fill = pred)) + 
   geom_sf(data = gan_penn, mapping = aes(colour = sky_brightness)) +
-  scale_fill_viridis_c(direction = -1, limits = c(2, 4.5)) +
+  scale_fill_viridis_c(direction = -1, limits = c(1, 7)) +
   scale_colour_viridis_c(direction = -1)
+
+# With observations
+gan_grid_means %>% 
+  mutate(pred = grid_pred_cc$var1.pred, var = grid_pred_cc$var1.var) %>% 
+  ggplot() + 
+  geom_sf(color = NA, mapping = aes(fill = gan_grid_means$grid_mean)) + 
+  geom_sf(data = gan_penn_means, mapping = aes(colour = sky_brightness)) +
+  labs(fill = "grid_mean") +
+  scale_fill_viridis_c(direction = -1, limits = c(1, 7)) + #put them on the same scale
+  scale_colour_viridis_c(direction = -1)
+
+# Only the averaged squares in the grid, without the observations
+gan_grid_means %>% 
+  mutate(pred = grid_pred_cc$var1.pred, var = grid_pred_cc$var1.var) %>% 
+  ggplot() + 
+  geom_sf(color = NA, mapping = aes(fill = gan_grid_means$grid_mean)) +
+  labs(fill = "grid_mean") +
+  scale_fill_viridis_c(direction = -1, limits = c(1, 7)) + #scale needs to be like this, otherwise some boxes stay grey
+  scale_colour_viridis_c(direction = -1)
+
+ggsave("img/plot just cloud sun moon.png")
+
+########################## 
+# A model with motorway covariates
+
+emp_vario_cov <- variogram(sky_brightness~motorway_1km+motorway_25km+motorway_10km, gan_penn)
+
+plot(emp_vario_cov)
+# Estimate a spherical model for the variogram
+mod_vario_cov <- fit.variogram(
+  emp_vario_cov, 
+  vgm(psill = 1.5, "Sph", nugget = 1), 
+#  fit.method = 2
+)
+
+# Now krige with the motorways
+grid_pred_cov <- krige(
+  formula   = sky_brightness ~cloud_cover+motorway_10km,
+  locations = gan_penn %>% st_jitter(0.00001), 
+  newdata   = gan_grid %>% mutate(geometry = st_centroid(geometry), cloud_cover = "clear"),
+  model     = mod_vario_cov,
+  nmax      = 100,
+  debug.level = -1
+) # warnings about singular values
+
+# and make a plot
+gan_grid %>% 
+  mutate(pred = grid_pred_cov$var1.pred, var = grid_pred_cov$var1.var) %>% 
+  ggplot() + 
+  geom_sf(color = NA, mapping = aes(fill = pred)) + 
+  geom_sf(data = gan_penn, mapping = aes(colour = sky_brightness)) +
+  scale_fill_viridis_c(direction = -1, limits = c(0, 7)) +
+  scale_colour_viridis_c(direction = -1)
+ggsave("img/plot clouds+ motorways_10km.png")
+
+########################## 
+# A model with motorways10_km and other primary roads, without sun/moon correction
+emp_vario_cov <- variogram(sky_brightness~motorway_10km+primary_10km+secondary_10km, gan_penn)
+
+plot(emp_vario_cov)
+# Estimate a spherical model for the variogram
+mod_vario_cov <- fit.variogram(
+  emp_vario_cov, 
+  vgm(psill = 1.5, "Sph", nugget = 1), 
+  #  fit.method = 2
+)
+
+# Now krige with the roads
+grid_pred_cov <- krige(
+  formula   = sky_brightness ~cloud_cover+motorway_10km+primary_10km+secondary_10km,
+  locations = gan_penn %>% st_jitter(0.00001), 
+  newdata   = gan_grid %>% mutate(geometry = st_centroid(geometry), cloud_cover = "clear"),
+  model     = mod_vario_cov,
+  nmax      = 100,
+  debug.level = -1
+) # warnings about singular values
+
+# and make a plot
+gan_grid %>% 
+  mutate(pred = grid_pred_cov$var1.pred, var = grid_pred_cov$var1.var) %>% 
+  ggplot() + 
+  geom_sf(color = NA, mapping = aes(fill = pred)) + 
+  geom_sf(data = gan_penn, mapping = aes(colour = sky_brightness)) +
+  scale_fill_viridis_c(direction = -1, limits=c(1,7)) +
+  scale_colour_viridis_c(direction = -1)
+ggsave("img/plot with clouds multiple roads.png")
+
+# and a plot without observatrions, and no scale
+gan_grid %>% 
+  mutate(pred = grid_pred_cov$var1.pred, var = grid_pred_cov$var1.var) %>% 
+  ggplot() + 
+  geom_sf(color = NA, mapping = aes(fill = pred)) + 
+ # geom_sf(data = gan_penn, mapping = aes(colour = sky_brightness)) +
+  scale_fill_viridis_c(direction = -1, limits=c(0,7)) +
+  theme(legend.position="none")
+#  scale_colour_viridis_c(direction = -1)
+ggsave("img/plot with clouds multiple roads only predictions.png")
+
+
+
+
+########################## 
+# A model with only tertiary roads
+emp_vario_cov <- variogram(sky_brightness~tertiary_1km+tertiary_10km+tertiary_25km, gan_penn)
+
+plot(emp_vario_cov)
+# Estimate a spherical model for the variogram
+mod_vario_cov <- fit.variogram(
+  emp_vario_cov, 
+  vgm(psill = 1.5, "Sph", nugget = 1), 
+  #  fit.method = 2
+)
+
+# Now krige with the roads
+grid_pred_cov <- krige(
+  formula   = sky_brightness ~cloud_cover+tertiary_25km,
+  locations = gan_penn %>% st_jitter(0.00001), 
+  newdata   = gan_grid %>% mutate(geometry = st_centroid(geometry), cloud_cover = "clear"),
+  model     = mod_vario_cov,
+  nmax      = 100,
+  debug.level = -1
+) # warnings about singular values
+
+# and make a plot
+gan_grid %>% 
+  mutate(pred = grid_pred_cov$var1.pred, var = grid_pred_cov$var1.var) %>% 
+  ggplot() + 
+  geom_sf(color = NA, mapping = aes(fill = pred)) + 
+  geom_sf(data = gan_penn, mapping = aes(colour = sky_brightness)) +
+  scale_fill_viridis_c(direction = -1, limits=c(1,7)) +
+  scale_colour_viridis_c(direction = -1)
+
+
+
+
