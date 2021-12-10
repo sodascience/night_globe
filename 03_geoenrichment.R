@@ -4,23 +4,15 @@ library(tidyverse)
 library(sf)
 library(osmenrich)
 
-## If you have a local instance of the overpass api installed you can uncomment the following line (using port 12345, see below in the installation)
-# osmdata::set_overpass_url("http://localhost:12345/api/interpreter")
+# If you are a FSS UU user --> use our own OSM instance and uncomment the second line:
+## https://gist.github.com/jgarciab/96d4c654f417201cd363e09ec8f0254b
+## osmdata::set_overpass_url("http://localhost:12345/api/interpreter")
 
-## To install the local instance, open docker and run the following
-## code, which will install the database in Volumes/apfs_part/docker_us_storage
-## It will take ~1 hour to install, but will remove the API limitations for the OSM queries
-# docker run \
-# -e OVERPASS_META=yes \
-# -e OVERPASS_MODE=init \
-# -e OVERPASS_PLANET_URL=https://download.geofabrik.de/north-america/us/pennsylvania-latest.osm.bz2 \
-# -e OVERPASS_DIFF_URL=http://download.openstreetmap.fr/replication/north-america/minute/ \
-# -e OVERPASS_RULES_LOAD=10 \
-# -v /Volumes/apfs_part/docker_us_storage:/db \
-# -p 12345:80 \
-# -i -t \
-# --name overpass_us \
-# wiktorn/overpass-api
+# If you are not:
+## Low number of queries: nothing is needed
+## High number of queries: create your own overpass instance in your computer using docker (run 
+## line 41 in your local machine, then uncomment the line above setting the overpass)
+
 
 # Load data
 gan_penn <- read_rds("output/gan_penn_sunmoon.rds")
@@ -38,8 +30,6 @@ key_to_values = list(highway = c("motorway","trunk","primary","secondary","terti
 
 gan_enrich <- gan_penn
 
-# Keep track of time (for future performance boosting)
-start.time <- Sys.time()
 
 ## Enrich for the different combinations (~30 min with a local instance)
 for (key in names(key_to_values)) {
@@ -51,7 +41,6 @@ for (key in names(key_to_values)) {
       } else {
         name = paste(value,"_",r/1000,"km",sep="")
       }
-    
       # Enrich
       gan_enrich <- gan_enrich %>%
         enrich_osm(
@@ -61,7 +50,8 @@ for (key in names(key_to_values)) {
           type = type,
           kernel = kernel,
           r = r,
-          control=list(timeout = 600) #Adding some extra time for the server to respond
+          control=list(timeout = 600), #Adding some extra time for the server to respond
+          exact_distance = FALSE #35sec vs 0.03sec
         )
     }
   }
@@ -71,5 +61,3 @@ for (key in names(key_to_values)) {
 # Store as gan_penn_geoenrich.rds
 write_rds(gan_enrich, "output/gan_penn_geoenrich.rds")
 
-# Print time taken
-print(Sys.time() - start.time)
