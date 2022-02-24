@@ -4,6 +4,7 @@ library(sf)
 library(stars)
 library(httr)
 library(curl)
+library(pbapply)
 
 # get pennsylvania
 states <- st_read("data/us_states/cb_2018_us_state_5m.shp")
@@ -26,16 +27,40 @@ wms_url$query <- list(
 
 tif_loc <- curl_download(build_url(wms_url), "data/landuse.tif", quiet = FALSE)
 
-landuse <- read_stars("data/landuse.tif")
+landuse <- read_stars("data/landuse.tif", proxy = TRUE)
+
+landuse_s <- st_as_stars(landuse, downsample = 10L)
+
+
 
 ggplot() + 
-  geom_stars(data = landuse, downsample = 2) + 
+  geom_stars(data = landuse, downsample = 10L) + 
   geom_sf(data = state_geom, fill = "transparent", size = 1, colour = "white") +
   theme_minimal()
 
 
-gan_penn <- read_rds("output/gan_penn_sunmoon.rds")
+grid_penn <- read_rds("output/grid_penn.rds")
 
-landuse %>%
-  aggregate(st_geometry(state_geom)[1], \(x) prop.table(table(x)))
-  
+droplevels(landuse) %>% st_crop(st_geometry(grid_penn)[1]) %>% plot
+landuse_grid <- aggregate(droplevels(landuse), st_geometry(grid_penn)[1], FUN = \(x) list(prop.table(table(x)))) %>% st_as_sf()
+landuse_grid
+
+droplevels(landuse_s) %>% st_intersects(x) %>% plot
+
+res <- sapply(st_geometry(grid_penn), \(x) droplevels(landuse_s) %>% st_crop(x) %>% table %>% prop.table() %>% unname())
+
+grid_penn_landuse <- grid_penn %>% bind_cols(landuse = as_tibble(t(res)))
+grid_penn_landuse
+
+write_rds(grid_penn_landuse, "output/grid_penn_landuse.rds")
+
+plt <- grid_penn_landuse %>% 
+  pivot_longer(starts_with("V")) %>% 
+  st_as_sf() %>% 
+  ggplot() +
+  geom_sf(aes(fill = value), color = "transparent") +
+  facet_wrap(~name) +
+  scale_fill_viridis_c(guide = "none") +
+  theme_minimal()
+
+ggsave(plot = plt, "img/landuse_features.png", width = 12, height = 9)
