@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "3.6.2",
+    "Version": "4.1.2",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -496,8 +496,8 @@
       "Package": "osmenrich",
       "Version": "1.2.1",
       "Source": "GitHub",
-      "Remotes": "vankesteren/firatheme",
       "RemoteType": "github",
+      "Remotes": "vankesteren/firatheme",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "osmenrich",
       "RemoteUsername": "sodascience",
@@ -511,6 +511,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "c446b30cb33ec125ff02588b60660ccb"
+    },
+    "pbapply": {
+      "Package": "pbapply",
+      "Version": "1.5-0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "11359a5bb73622ab3f4136bf57108b64"
     },
     "pillar": {
       "Package": "pillar",
