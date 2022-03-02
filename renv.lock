@@ -3,8 +3,12 @@
     "Version": "4.1.2",
     "Repositories": [
       {
+        "Name": "vankesteren",
+        "URL": "https://vankesteren.r-universe.dev"
+      },
+      {
         "Name": "CRAN",
-        "URL": "https://cran.rstudio.com"
+        "URL": "https://cloud.r-project.org"
       }
     ]
   },
@@ -295,6 +299,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "3eb6477d01eb5bbdc03f7d5f70f2733e"
+    },
+    "ggpointdensity": {
+      "Package": "ggpointdensity",
+      "Version": "0.1.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "8868788d373ea767189d8a5436416e30"
     },
     "glue": {
       "Package": "glue",

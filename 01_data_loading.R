@@ -62,7 +62,7 @@ ggplot() +
     title    = "Globe at Night observations in 2020", 
     subtitle = "Pennsylvania"
   )
-ggsave("img/raw_gan.png", width = 10, height = 8)
+ggsave("img/raw_gan.png", width = 10, height = 6)
 
 
 # Radiance data ----
@@ -85,11 +85,12 @@ ggplot() +
     subtitle = "Pennsylvania"
   )
 
-ggsave("img/raw_radiance.png", width = 10, height = 8)
+ggsave("img/raw_radiance.png", width = 10, height = 6)
 
 
 # Landuse data ----
 # Load landuse data in Pennsylvania as a stars object
+# for classes see https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description
 
 # download the landuse data using wms service
 wms_url <- parse_url("https://www.mrlc.gov/geoserver/mrlc_display/NLCD_2019_Land_Cover_L48/wms?service=WMS")

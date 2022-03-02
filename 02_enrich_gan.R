@@ -79,4 +79,4 @@ ggsave("img/gan_enrich_landuse.png", width = 8, height = 6)
 
 
 # write to output folder
-write_rds(gan, "output/gan_enriched.rds")
+write_rds(gan, "data/gan_enriched.rds")
