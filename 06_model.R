@@ -141,10 +141,17 @@ pred_sf %>%
   ylim(-1.5, 4.5) +
   labs(x = "Estimate", y = "Log observed skyglow")
 
+ggsave("img/comparison.png", width = 8, height = 6)
+
 # comparing correlation
 as_tibble(pred_sf) %>% 
   select(log_skyglow, starts_with("est")) %>% 
   cor(use = "pair", method = "spearman")
+
+cor.test(pred_sf$skyglow, pred_sf$est_Naive, method = "spearman")
+cor.test(pred_sf$skyglow, pred_sf$est_Krige, method = "spearman")
+cor.test(pred_sf$skyglow, pred_sf$est_Landuse, method = "spearman")
+cor.test(pred_sf$skyglow, pred_sf$est_Landuse_Krige, method = "spearman")
 
 # comparing R²
 tibble(
