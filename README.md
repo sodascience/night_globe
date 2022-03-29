@@ -8,9 +8,13 @@ The Globe at Night project contains volunteer-collected data about the brightnes
 
 If researchers want to make inferences about how bright the night sky is in Pennsylvania, it would be optimal to observe the night sky at random locations in the state. The volunteer data is not randomly distributed: there is sampling bias. In this repository, we correct for such sampling bias by using geospatial covariates and geospatial models to predict sky brightness throughout Pennsylvania. 
 
-As covariates, we use moon illumination as well as land use data from [https://www.mrlc.gov/](https://www.mrlc.gov/). 
+As covariates, we use moon illumination, cloud cover as well as land use data from [https://www.mrlc.gov/](https://www.mrlc.gov/). 
 
 ![](/img/raw_landuse.png)
+
+In addition, we have information about where the main roads lie in Pennsylvania. This is data from OpenStreetMaps:
+
+![](/img/raw_highway.png)
 
 Using different models with increasing levels of complexity we obtain the following predicted sky brightness values:
 
@@ -20,7 +24,7 @@ We can then externally validate these models by comparing them against (log-)sky
 
 ![](/img/skyglow.png)
 
-The results show that the model with kriging and land use covariates best approximates the log-skyglow in Pennsylvania (R² = .264).
+The results show that the model with the OSM highway covariate without kriging best approximates the log-skyglow in Pennsylvania (R² = .35).
 
 ![](/img/comparison.png)
 
