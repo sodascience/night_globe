@@ -24,3 +24,6 @@ Earth Observation Group, Payne Institute for Public Policy
 C. D. Elvidge, K. Baugh, M. Zhizhin, F. C. Hsu, and T. Ghosh, “VIIRS night-time lights,” International Journal of Remote Sensing, vol. 38, pp. 5860–5879, 2017.
 
 Elvidge, C.D, Zhizhin, M., Ghosh T., Hsu FC, Taneja J. Annual time series of global VIIRS nighttime lights derived from monthly averages: 2012 to 2019. Remote Sensing 2021, 13(5), p.922, doi:10.3390/rs13050922
+
+## Land use
+The land use data is downloaded as part of the script `01_data_loading.R` from the OGC WMS service of the MRLC: https://www.mrlc.gov/geoserver/mrlc_display/NLCD_2019_Land_Cover_L48/wms?service=WMS.
