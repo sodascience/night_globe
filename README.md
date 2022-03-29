@@ -1,7 +1,4 @@
-# Inference from volunteer data: Globe at Night
-
-
-## Correcting inferences in volunteer data using geospatial covariates.
+# Correcting inferences in volunteer data using geospatial covariates.
 
 The Globe at Night project contains volunteer-collected data about the brightness of the sky. For example, in Pennsylvania in 2020, the following observations were made:
 ![](/img/raw_gan.png)
