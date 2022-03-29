@@ -1,6 +1,7 @@
 # get land use codes
 library(tidyverse)
 library(rvest)
+library(xtable)
 
 land_use_codes <- 
   read_html("https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description") %>% 
@@ -12,3 +13,5 @@ land_use_codes <-
   unnest_wider(X2, names_sep = "_") %>% 
   set_names("Code", "Label", "Description") %>% 
   mutate(across(-Code, str_trim))
+
+xtable(land_use_codes[,-1])
