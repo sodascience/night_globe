@@ -7,6 +7,7 @@
 library(tidyverse)
 library(lubridate)
 library(sf)
+library(osmenrich)
 library(suncalc)
 library(stars)
 library(pbapply)
@@ -44,6 +45,7 @@ gan <-
   )
 
 
+# Land use ----
 # Land use features in 2.821km radius around obs
 # Prediction grid will be 5*5km -> area 25km²
 # 25 = pi*r^2 -> r = sqrt(25/pi) km
@@ -77,6 +79,40 @@ ggplot() +
 
 ggsave("img/gan_enrich_landuse.png", width = 8, height = 6)
 
+# Motorways from openstreetmaps ----
+# use the osmenrich package to add motorways to the dataset
+# 1 km radius
+gan <- gan %>%
+  enrich_osm(
+    name = "motorway_1km",
+    key = "highway",
+    value = "motorway",
+    type = "lines",
+    kernel = "gaussian",
+    r = 1000
+  )
+
+# 10km radius
+gan <- gan %>%
+  enrich_osm(
+    name = "motorway_10km",
+    key = "highway",
+    value = "motorway",
+    type = "lines",
+    kernel = "gaussian",
+    r = 10000
+  )
+
+# 25km radius
+gan <- gan %>%
+  enrich_osm(
+    name = "motorway_25km",
+    key = "highway",
+    value = "motorway",
+    type = "lines",
+    kernel = "gaussian",
+    r = 25000
+  )
 
 # write to output folder
 write_rds(gan, "data/gan_enriched.rds")

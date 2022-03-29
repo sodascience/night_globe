@@ -36,3 +36,6 @@ vignettes/*.pdf
 rsconnect/
 
 .DS_Store
+
+# ignore big raw data file!
+raw_data/VNL_v2_npp_2020_global_vcmslcfg_c202101211500.median.tif
