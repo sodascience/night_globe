@@ -12,9 +12,8 @@ Us state shapefiles from https://www.census.gov/geographies/mapping-files/time-s
 
 License: unknown
 
-## Median radiance
-To create the file `median_radiance_2020.tif`, download the 10.8GB file `VNL_v2_npp_2020_global_vcmslcfg_c202101211500.median.tif.gz` from [`https://eogdata.mines.edu/nighttime_light/annual/v20/2020/`](https://eogdata.mines.edu/nighttime_light/annual/v20/2020/), and unzip it in the `data/` folder. Then, run the script `data/satellite_preproc.R` to create the median radiance for Pennsylvania only.
-
+## Radiance
+Download the 10.8GB file `VNL_v2_npp_2020_global_vcmslcfg_c202101211500.median.tif.gz` from [`https://eogdata.mines.edu/nighttime_light/annual/v20/2020/`](https://eogdata.mines.edu/nighttime_light/annual/v20/2020/), and unzip it in the `raw_data/` folder.
 
 License: unknown
 
