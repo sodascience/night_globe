@@ -1,8 +1,10 @@
 # Function to compute radiance for 
 # transforming remotely sensed radiance to skyglow
-# Walker's law: https://iopscience.iop.org/article/10.1086/130142
-# intensity \propto distance^{-2.5}
+# Last edited 20220302 by @vankesteren
 
+# This script implements Walker's law: 
+# https://iopscience.iop.org/article/10.1086/130142
+# skyglow intensity \propto distance^{-2.5}
 # specifically: log flux \propto log flux - 2.5 * log (distance + 1)
 # https://arxiv.org/ftp/astro-ph/papers/0702/0702721.pdf, figure 10
 library(tidyverse)
@@ -12,7 +14,7 @@ library(progress)
 library(patchwork)
 
 radiance_raster <- read_stars("data/median_radiance_2020.tif", proxy = TRUE)
-prediction_grid <- read_rds("output/grid_penn.rds")
+prediction_grid <- read_rds("data/grid_pred.rds")
 
 # function to compute skyglow over a grid based on radiance raster data (stars obj)
 # based on walker's (1977) law
@@ -56,7 +58,7 @@ rd_grid <-
 
 # write to file
 sg_rd_grid <- sg_grid %>% mutate(radiance = rd_grid$radiance)
-write_rds(sg_rd_grid, "output/grid_skyglow.rds")
+write_rds(sg_rd_grid, "data/grid_skyglow.rds")
 
 
 # bonus: plot to compare radiance and skyglow grid
@@ -76,4 +78,4 @@ plt_skyglow <-
 
 plt_radiance / plt_skyglow
 
-ggsave("img/skyglow.png", width = 6, height = 7)
+ggsave("img/skyglow.png", width = 8, height = 10)
