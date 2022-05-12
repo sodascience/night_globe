@@ -15,12 +15,12 @@ gan       <- read_rds("data/gan_enriched.rds")
 grid_pred <- read_rds("data/grid_enriched.rds")
 skyglow   <- read_rds("data/grid_skyglow.rds")
 
-# Function for LOOCV of lm model ---
-# From Stack Overflow https://stackoverflow.com/a/48114343 
-loocv <- function(fit){
-  h <- lm.influence(fit)$h
-  mean((residuals(fit) / (1 - h))^2)
-} # mean squared error 
+# jitter the points a tiny amount for kriging
+set.seed(45)
+gan_jitter <- gan %>% st_jitter(0.00001)
+
+# colnames for later use
+cn <- colnames(gan)
 
 # Model fitting ----
 ## Model 1: Naïve model ----
@@ -54,20 +54,12 @@ mod_vario <- fit.variogram(emp_vario, vgm(psill = 1, "Sph", nugget = 1), fit.met
 # perform kriging
 krige_pred <- krige(
   formula   = sky_brightness ~ 1,
-  locations = gan %>% filter(!is.na(sky_brightness)) %>% st_jitter(0.00001), 
+  locations = gan_jitter %>% filter(!is.na(sky_brightness)), 
   newdata   = grid_pred %>% mutate(geometry = st_centroid(geometry)), 
   model     = mod_vario,
   debug.level = -1
 )
 
-krige_pred_gan <- krige.cv(
-  formula   = sky_brightness ~ 1,
-  locations = gan %>% filter(!is.na(sky_brightness)) %>% st_jitter(0.00001), 
-  model     = mod_vario,
-  debug.level = -1
-)
-
-krige_pred
 pred_model2 <- 
   grid_pred %>% 
   mutate(est = krige_pred$var1.pred, 
@@ -82,12 +74,11 @@ pred_model2 <-
 
 ## Model 3: land-use regression ----
 # also using moon illumination & cloud cover as a predictor
-cn <- colnames(gan)
-frm <- as.formula(paste(
+frm_lur <- as.formula(paste(
   "sky_brightness ~ 0 + moon_illumination + CloudCover +",
   paste(cn[str_detect(cn, "landtype")], collapse = "+")
 ))
-fit_model3 <- lm(frm, gan)
+fit_model3 <- lm(frm_lur, gan)
 prd3 <- predict(fit_model3, newdata = grid_pred, se.fit = TRUE)
 pred_model3 <- grid_pred %>% mutate(est = prd3$fit, var = prd3$se.fit^2)
 
@@ -99,19 +90,12 @@ pred_model3 <- grid_pred %>% mutate(est = prd3$fit, var = prd3$se.fit^2)
   labs(title = "Land-use regression predictions", subtitle = "Model 3"))
 
 ## Model 4: Universal kriging with LUR ----
-emp_vario_lur <- variogram(frm, gan %>% filter(!is.na(sky_brightness)))
-mod_vario_lur <- fit.variogram(emp_vario_lur, vgm(psill = 1, "Sph", nugget = 1), fit.method = 1)
+emp_vario_lur <- variogram(frm_lur, gan %>% filter(!is.na(sky_brightness)))
+mod_vario_lur <- fit.variogram(emp_vario_lur, vgm(psill = 0, "Sph", nugget = 1), fit.method = 1)
 krige_pred_lur <- krige(
-  formula   = frm,
-  locations = gan %>% filter(!is.na(sky_brightness)) %>% st_jitter(0.001), 
+  formula   = frm_lur,
+  locations = gan_jitter %>% filter(!is.na(sky_brightness)), 
   newdata   = grid_pred %>% mutate(geometry = st_centroid(geometry)), 
-  model     = mod_vario_lur,
-  debug.level = -1
-)
-
-krige_pred_lur_cv <- krige.cv(
-  formula   = frm,
-  locations = gan %>% filter(!is.na(sky_brightness)) %>% st_jitter(0.00001), 
   model     = mod_vario_lur,
   debug.level = -1
 )
@@ -130,8 +114,8 @@ pred_model4 <-
 
 ## Model 5: Using OSM covariates only ----
 # Motorway variable
-frm <- sky_brightness ~ moon_illumination + CloudCover + motorway_10km
-fit_model5 <- lm(frm, gan)
+frm_osm <- sky_brightness ~ moon_illumination + CloudCover + motorway_10km
+fit_model5 <- lm(frm_osm, gan)
 prd5 <- predict(fit_model5, newdata = grid_pred, se.fit = TRUE)
 pred_model5 <- grid_pred %>% mutate(est = prd5$fit, var = prd5$se.fit^2)
 
@@ -144,20 +128,12 @@ pred_model5 <- grid_pred %>% mutate(est = prd5$fit, var = prd5$se.fit^2)
 
 ## Model 6: Universal kriging with OSM covariates ----
 # Motorway variable
-frm <- sky_brightness ~ moon_illumination + CloudCover + motorway_10km
-emp_vario_osm <- variogram(frm, gan %>% filter(!is.na(sky_brightness)))
+emp_vario_osm <- variogram(frm_osm, gan %>% filter(!is.na(sky_brightness)))
 mod_vario_osm <- fit.variogram(emp_vario_osm, vgm(psill = 1, "Sph", nugget = 1), fit.method = 1)
 krige_pred_osm <- krige(
-  formula   = frm,
-  locations = gan %>% filter(!is.na(sky_brightness)) %>% st_jitter(0.001), 
+  formula   = frm_osm,
+  locations = gan_jitter %>% filter(!is.na(sky_brightness)), 
   newdata   = grid_pred %>% mutate(geometry = st_centroid(geometry)), 
-  model     = mod_vario_osm,
-  debug.level = -1
-)
-
-krige_pred_osm_cv <- krige.cv(
-  formula   = frm,
-  locations = gan %>% filter(!is.na(sky_brightness)) %>% st_jitter(0.00001), 
   model     = mod_vario_osm,
   debug.level = -1
 )
@@ -177,12 +153,11 @@ pred_model6 <-
 
 ## Model 7: Using both LUR and OSM ----
 # Motorway variable + landuse
-cn <- colnames(gan)
-frm <- as.formula(paste(
+frm_all <- as.formula(paste(
   "sky_brightness ~ 0 + moon_illumination + CloudCover + motorway_10km +",
   paste(cn[str_detect(cn, "landtype")], collapse = "+")
 ))
-fit_model7 <- lm(frm, gan)
+fit_model7 <- lm(frm_all, gan)
 prd7 <- predict(fit_model7, newdata = grid_pred, se.fit = TRUE)
 pred_model7 <- grid_pred %>% mutate(est = prd7$fit, var = prd7$se.fit^2)
 
@@ -195,24 +170,12 @@ pred_model7 <- grid_pred %>% mutate(est = prd7$fit, var = prd7$se.fit^2)
 
 ## Model 8: Universal kriging with both LUR and OSM ----
 # Motorway variable + landuse
-cn <- colnames(gan)
-frm <- as.formula(paste(
-  "sky_brightness ~ 0 + moon_illumination + CloudCover + motorway_10km +",
-  paste(cn[str_detect(cn, "landtype")], collapse = "+")
-))
-emp_vario_all <- variogram(frm, gan %>% filter(!is.na(sky_brightness)))
-mod_vario_all <- fit.variogram(emp_vario_osm, vgm(psill = .9, "Sph", nugget = 1), fit.method = 1)
+emp_vario_all <- variogram(frm_all, gan %>% filter(!is.na(sky_brightness)))
+mod_vario_all <- fit.variogram(emp_vario_all, vgm(psill = .9, "Sph", nugget = 1), fit.method = 1)
 krige_pred_all <- krige(
-  formula   = frm,
-  locations = gan %>% filter(!is.na(sky_brightness)) %>% st_jitter(0.001), 
+  formula   = frm_all,
+  locations = gan_jitter %>% filter(!is.na(sky_brightness)), 
   newdata   = grid_pred %>% mutate(geometry = st_centroid(geometry)), 
-  model     = mod_vario_all,
-  debug.level = -1
-)
-
-krige_pred_all_cv <- krige.cv(
-  formula   = frm,
-  locations = gan %>% filter(!is.na(sky_brightness)) %>% st_jitter(0.00001), 
   model     = mod_vario_all,
   debug.level = -1
 )
@@ -257,15 +220,57 @@ pred_sf <-
 write_rds(pred_sf, "data/pred_sf.rds")
 
 # Internal validation: model comparison (TODO)
+# Function for LOOCV of lm model (no kriging)
+# From https://stackoverflow.com/a/48114343 
+loocv_lm <- function(fit){
+  h <- lm.influence(fit)$h
+  mean((residuals(fit) / (1 - h))^2)
+}
+
+# LOOCV model 1
+loocv_mod2 <- krige.cv(
+  formula   = sky_brightness ~ 1,
+  locations = gan_jitter %>% filter(!is.na(sky_brightness)), 
+  model     = mod_vario,
+  debug.level = -1
+)
+write_rds(loocv_mod2, "data/loocv_mod2.rds")
+
+# LOOCV model 4
+loocv_mod4 <- krige.cv(
+  formula   = frm_lur,
+  locations = gan_jitter %>% filter(!is.na(sky_brightness)), 
+  model     = mod_vario_lur,
+  debug.level = -1
+)
+write_rds(loocv_mod4, "data/loocv_mod4.rds")
+
+# LOOCV model 6
+loocv_mod6 <- krige.cv(
+  formula   = frm_osm,
+  locations = gan_jitter %>% filter(!is.na(sky_brightness)), 
+  model     = mod_vario_osm,
+  debug.level = -1
+)
+write_rds(loocv_mod6, "data/loocv_mod6.rds")
+
+# LOOCV model 8
+loocv_mod8 <- krige.cv(
+  formula   = frm_all,
+  locations = gan_jitter %>% filter(!is.na(sky_brightness)), 
+  model     = mod_vario_all,
+  debug.level = -1, 
+)
+write_rds(loocv_mod8, "data/loocv_mod8.rds")
 
 # Get the residuals 
 tibble(Model = 1:7, 
-       SSErr = c(mean(krige_pred_gan$residual^2), 
-                 loocv(fit_model3),
+       MSE   = c(mean(krige_pred_gan$residual^2), 
+                 loocv_lm(fit_model3),
                  mean(krige_pred_lur_cv$residual^2, na.rm = T),
-                 loocv(fit_model5), 
+                 loocv_lm(fit_model5), 
                  mean(krige_pred_osm_cv$residual^2),
-                 loocv(fit_model7),
+                 loocv_lm(fit_model7),
                  mean(krige_pred_all_cv$residual^2, na.rm = T)))
 # See how many NA's to determine severity
 krige_pred_lur_cv_resid <- as.data.frame(krige_pred_lur_cv$residual)
