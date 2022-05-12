@@ -8,12 +8,19 @@ library(sf)
 library(gstat)
 library(ggpointdensity)
 library(patchwork)
+library(stars)
 
 # Data loading ----
 gan       <- read_rds("data/gan_enriched.rds")
 grid_pred <- read_rds("data/grid_enriched.rds")
 skyglow   <- read_rds("data/grid_skyglow.rds")
 
+# Function for LOOCV of lm model ---
+# From Stack Overflow https://stackoverflow.com/a/48114343 
+loocv <- function(fit){
+  h <- lm.influence(fit)$h
+  mean((residuals(fit) / (1 - h))^2)
+} # mean squared error 
 
 # Model fitting ----
 ## Model 1: Naïve model ----
@@ -49,6 +56,13 @@ krige_pred <- krige(
   formula   = sky_brightness ~ 1,
   locations = gan %>% filter(!is.na(sky_brightness)) %>% st_jitter(0.00001), 
   newdata   = grid_pred %>% mutate(geometry = st_centroid(geometry)), 
+  model     = mod_vario,
+  debug.level = -1
+)
+
+krige_pred_gan <- krige.cv(
+  formula   = sky_brightness ~ 1,
+  locations = gan %>% filter(!is.na(sky_brightness)) %>% st_jitter(0.00001), 
   model     = mod_vario,
   debug.level = -1
 )
@@ -94,6 +108,14 @@ krige_pred_lur <- krige(
   model     = mod_vario_lur,
   debug.level = -1
 )
+
+krige_pred_lur_cv <- krige.cv(
+  formula   = frm,
+  locations = gan %>% filter(!is.na(sky_brightness)) %>% st_jitter(0.00001), 
+  model     = mod_vario_lur,
+  debug.level = -1
+)
+
 pred_model4 <- 
   grid_pred %>% 
   mutate(est = krige_pred_lur$var1.pred, 
@@ -132,6 +154,14 @@ krige_pred_osm <- krige(
   model     = mod_vario_osm,
   debug.level = -1
 )
+
+krige_pred_osm_cv <- krige.cv(
+  formula   = frm,
+  locations = gan %>% filter(!is.na(sky_brightness)) %>% st_jitter(0.00001), 
+  model     = mod_vario_osm,
+  debug.level = -1
+)
+
 pred_model6 <- 
   grid_pred %>% 
   mutate(est = krige_pred_osm$var1.pred, 
@@ -179,6 +209,14 @@ krige_pred_all <- krige(
   model     = mod_vario_all,
   debug.level = -1
 )
+
+krige_pred_all_cv <- krige.cv(
+  formula   = frm,
+  locations = gan %>% filter(!is.na(sky_brightness)) %>% st_jitter(0.00001), 
+  model     = mod_vario_all,
+  debug.level = -1
+)
+
 pred_model8 <- 
   grid_pred %>% 
   mutate(est = krige_pred_all$var1.pred, 
@@ -220,6 +258,20 @@ write_rds(pred_sf, "data/pred_sf.rds")
 
 # Internal validation: model comparison (TODO)
 
+# Get the residuals 
+tibble(Model = 1:7, 
+       SSErr = c(mean(krige_pred_gan$residual^2), 
+                 loocv(fit_model3),
+                 mean(krige_pred_lur_cv$residual^2, na.rm = T),
+                 loocv(fit_model5), 
+                 mean(krige_pred_osm_cv$residual^2),
+                 loocv(fit_model7),
+                 mean(krige_pred_all_cv$residual^2, na.rm = T)))
+# See how many NA's to determine severity
+krige_pred_lur_cv_resid <- as.data.frame(krige_pred_lur_cv$residual)
+sum(is.na(krige_pred_lur_cv_resid)) # 2 NA's
+krige_pred_all_cv_resid <- as.data.frame(krige_pred_all_cv$residual)
+sum(is.na(krige_pred_all_cv_resid)) # 3 NA's
 
 # External validation: compare the predictions to the (log-)skyglow
 # visual comparison
@@ -271,3 +323,6 @@ tibble(
           summary(lm(log_skyglow ~ est_Both_No, na.omit(pred_sf)))$r.squared,
           summary(lm(log_skyglow ~ est_Both_Yes, na.omit(pred_sf)))$r.squared)
 )
+
+# It takes an hour to run this, so save workspace for now
+save.image("workspace_model.RData")
