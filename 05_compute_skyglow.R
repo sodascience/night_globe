@@ -69,6 +69,8 @@ plt_radiance <-
   labs(fill = "", title = "Radiance", subtitle = "Mean radiance on 5x5 km grid") +
   theme_minimal()
 
+plt_radiance
+
 plt_skyglow <- 
   ggplot(sg_grid, aes(fill = skyglow)) + 
   geom_sf(colour = NA) + 
@@ -76,6 +78,6 @@ plt_skyglow <-
   labs(fill = "", title = "Skyglow", subtitle = "Walker's law on 5x5 km grid") +
   theme_minimal()
 
-plt_radiance / plt_skyglow
+plt_skyglow
 
-ggsave("img/skyglow.png", width = 8, height = 10)
+ggsave("img/skyglow.png", width = 10, height = 6)
