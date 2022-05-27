@@ -23,11 +23,12 @@ grid_pred <- grid_pred %>% mutate(moon_illumination = 0, CloudCover = "clear")
 
 # Land use ----
 # Land use features in grid cell
-landuse_props <- pbsapply(st_geometry(grid_pred), \(cell) landuse %>% st_crop(cell) %>% table() %>% prop.table())
+landuse_props <- pbsapply(st_geometry(grid_pred), function(cell) landuse %>% st_crop(cell) %>% table() %>% prop.table())
 
 landuse_tbl <- 
   as_tibble(t(landuse_props)[,-1], .name_repair = "minimal") %>% 
-  set_names(\(num) paste0("landtype_", num))
+  set_names(function(num) paste0("landtype_", num)) %>%
+  select(-landtype_21)
 
 grid_pred <- bind_cols(grid_pred, landuse_tbl)
 

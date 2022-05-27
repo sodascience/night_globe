@@ -1,8 +1,7 @@
 # Modeling script
-# Estimate model on GaN data
+# Estimate models on GaN data
 # Predict for the grid
-# Compare to remote sensed skyglow
-
+# Store the results
 library(tidyverse)
 library(sf)
 library(gstat)
@@ -24,7 +23,9 @@ cn <- colnames(gan)
 
 # Model fitting ----
 ## Model 1: Naïve model ----
-# just means of obs in each cell
+# This model is just the means of the observations in each cell
+# When a cell has no observations, use the overall mean
+
 brightness_means <- 
   gan %>% 
   group_by(grid_cell = st_within(gan, grid_pred)) %>%
@@ -37,21 +38,12 @@ pred_model1$est <- NA
 pred_model1[brightness_means$grid_cell, "est"] <- brightness_means$sky
 pred_model1 <- pred_model1 %>% mutate(est = replace_na(est, mean(est, na.rm = TRUE)))
 
-(plt_mod1 <-
-  ggplot() +
-  geom_sf(data = pred_model1, aes(fill = est), colour = "transparent") +
-  scale_fill_viridis_c(na.value = "transparent", direction = -1, guide = "none", limits = c(1, 7)) +
-  theme_minimal() +
-  labs(title = "Naïve predictions", subtitle = "Model 1"))
-
 ## Model 2: kriging ----
-# Create an empirical variogram 
-emp_vario <- variogram(sky_brightness~1, gan %>% filter(!is.na(sky_brightness)))
+# Standard kriging without any covariates
 
-# Estimate a spherical model for the variogram
-mod_vario <- fit.variogram(emp_vario, vgm(psill = 1, "Sph", nugget = 1), fit.method = 1)
-
-# perform kriging
+emp_vario <- variogram(sky_brightness~1, gan %>% filter(!is.na(sky_brightness)), width = 5)
+mod_vario <- fit.variogram(emp_vario, vgm(psill = 1, "Mat", nugget = 1), fit.method = 1)
+write_rds(mod_vario, "data/model_fits/mod_vario.rds")
 krige_pred <- krige(
   formula   = sky_brightness ~ 1,
   locations = gan_jitter %>% filter(!is.na(sky_brightness)), 
@@ -65,33 +57,28 @@ pred_model2 <-
   mutate(est = krige_pred$var1.pred, 
          var = krige_pred$var1.var)
 
-(plt_mod2 <- 
-  ggplot() +
-  geom_sf(data = pred_model2, aes(fill = est), colour = "transparent") +
-  scale_fill_viridis_c(na.value = "transparent", direction = -1, guide = "none", limits = c(1, 7)) +
-  theme_minimal() +
-  labs(title = "Kriging predictions", subtitle = "Model 2"))
 
 ## Model 3: land-use regression ----
+# Standard ols regression with land-use covariates
 # also using moon illumination & cloud cover as a predictor
+
 frm_lur <- as.formula(paste(
   "sky_brightness ~ 0 + moon_illumination + CloudCover +",
   paste(cn[str_detect(cn, "landtype")], collapse = "+")
 ))
 fit_model3 <- lm(frm_lur, gan)
+write_rds(fit_model3, "data/model_fits/mod3.rds")
 prd3 <- predict(fit_model3, newdata = grid_pred, se.fit = TRUE)
 pred_model3 <- grid_pred %>% mutate(est = prd3$fit, var = prd3$se.fit^2)
 
-(plt_mod3 <- 
-  ggplot() +
-  geom_sf(data = pred_model3, aes(fill = est), colour = "transparent") +
-  scale_fill_viridis_c(na.value = "#440154FF", direction = -1, limits = c(1, 7), guide = "none") +
-  theme_minimal() +
-  labs(title = "Land-use regression predictions", subtitle = "Model 3"))
 
 ## Model 4: Universal kriging with LUR ----
-emp_vario_lur <- variogram(frm_lur, gan %>% filter(!is.na(sky_brightness)))
-mod_vario_lur <- fit.variogram(emp_vario_lur, vgm(psill = 0, "Sph", nugget = 1), fit.method = 1)
+# Universal Kriging with the land-use covariates
+# also using moon illumination & cloud cover as a predictor
+
+emp_vario_lur <- variogram(frm_lur, gan %>% filter(!is.na(sky_brightness)), width = 5)
+mod_vario_lur <- fit.variogram(emp_vario_lur, vgm(psill = 0, "Mat", nugget = 1))
+write_rds(mod_vario_lur, "data/model_fits/mod_vario_lur.rds")
 krige_pred_lur <- krige(
   formula   = frm_lur,
   locations = gan_jitter %>% filter(!is.na(sky_brightness)), 
@@ -105,31 +92,25 @@ pred_model4 <-
   mutate(est = krige_pred_lur$var1.pred, 
          var = krige_pred_lur$var1.var)
 
-(plt_mod4 <- 
-    ggplot() +
-    geom_sf(data = pred_model4, aes(fill = est), colour = "transparent") +
-    scale_fill_viridis_c(na.value = "#440154FF", direction = -1, guide = "none", limits = c(1, 7)) +
-    theme_minimal() +
-    labs(title = "Land-use kriging predictions", subtitle = "Model 4"))
 
 ## Model 5: Using OSM covariates only ----
-# Motorway variable
+# Standard ols regression with motorways as covariate
+# also using moon illumination & cloud cover as a predictor
+
 frm_osm <- sky_brightness ~ moon_illumination + CloudCover + motorway_10km
 fit_model5 <- lm(frm_osm, gan)
+write_rds(fit_model5, "data/model_fits/mod5.rds")
 prd5 <- predict(fit_model5, newdata = grid_pred, se.fit = TRUE)
 pred_model5 <- grid_pred %>% mutate(est = prd5$fit, var = prd5$se.fit^2)
 
-(plt_mod5 <- 
-    ggplot() +
-    geom_sf(data = pred_model5, aes(fill = est), colour = "transparent") +
-    scale_fill_viridis_c(na.value = "#440154FF", direction = -1, limits = c(1, 7), guide = "none") +
-    theme_minimal() +
-    labs(title = "OSM regression predictions", subtitle = "Model 5"))
 
 ## Model 6: Universal kriging with OSM covariates ----
-# Motorway variable
-emp_vario_osm <- variogram(frm_osm, gan %>% filter(!is.na(sky_brightness)))
-mod_vario_osm <- fit.variogram(emp_vario_osm, vgm(psill = 1, "Sph", nugget = 1), fit.method = 1)
+# Universal Kriging with motorway as covariate
+# also using moon illumination & cloud cover as a predictor
+
+emp_vario_osm <- variogram(frm_osm, gan %>% filter(!is.na(sky_brightness)), width = 5)
+mod_vario_osm <- fit.variogram(emp_vario_osm, vgm(psill = 1, "Mat", nugget = 1), fit.method = 1)
+write_rds(mod_vario_osm, "data/model_fits/mod_vario_osm.rds")
 krige_pred_osm <- krige(
   formula   = frm_osm,
   locations = gan_jitter %>% filter(!is.na(sky_brightness)), 
@@ -143,35 +124,27 @@ pred_model6 <-
   mutate(est = krige_pred_osm$var1.pred, 
          var = krige_pred_osm$var1.var)
 
-(plt_mod6 <- 
-    ggplot() +
-    geom_sf(data = pred_model6, aes(fill = est), colour = "transparent") +
-    scale_fill_viridis_c(na.value = "#440154FF", direction = -1, guide = "none", limits = c(1, 7)) +
-    theme_minimal() +
-    labs(title = "OSM kriging predictions", subtitle = "Model 6"))
-
 
 ## Model 7: Using both LUR and OSM ----
-# Motorway variable + landuse
+# Standard ols regression with motorways and land-use variables as covariates
+# also using moon illumination & cloud cover as a predictor
+
 frm_all <- as.formula(paste(
   "sky_brightness ~ 0 + moon_illumination + CloudCover + motorway_10km +",
   paste(cn[str_detect(cn, "landtype")], collapse = "+")
 ))
 fit_model7 <- lm(frm_all, gan)
+write_rds(fit_model7, "data/model_fits/mod7.rds")
 prd7 <- predict(fit_model7, newdata = grid_pred, se.fit = TRUE)
 pred_model7 <- grid_pred %>% mutate(est = prd7$fit, var = prd7$se.fit^2)
 
-(plt_mod7 <- 
-    ggplot() +
-    geom_sf(data = pred_model7, aes(fill = est), colour = "transparent") +
-    scale_fill_viridis_c(na.value = "#440154FF", direction = -1, limits = c(1, 7), guide = "none") +
-    theme_minimal() +
-    labs(title = "Full regression predictions", subtitle = "Model 7"))
-
 ## Model 8: Universal kriging with both LUR and OSM ----
-# Motorway variable + landuse
-emp_vario_all <- variogram(frm_all, gan %>% filter(!is.na(sky_brightness)))
-mod_vario_all <- fit.variogram(emp_vario_all, vgm(psill = .9, "Sph", nugget = 1), fit.method = 1)
+# Universal Kriging with motorways and land-use variables as covariates
+# also using moon illumination & cloud cover as a predictor
+
+emp_vario_all <- variogram(frm_all, gan %>% filter(!is.na(sky_brightness)), width = 5)
+mod_vario_all <- fit.variogram(emp_vario_all, vgm(psill = .9, "Mat", nugget = 1), fit.method = 1)
+write_rds(mod_vario_all, "data/model_fits/mod_vario_all.rds")
 krige_pred_all <- krige(
   formula   = frm_all,
   locations = gan_jitter %>% filter(!is.na(sky_brightness)), 
@@ -185,23 +158,10 @@ pred_model8 <-
   mutate(est = krige_pred_all$var1.pred, 
          var = krige_pred_all$var1.var)
 
-(plt_mod8 <- 
-    ggplot() +
-    geom_sf(data = pred_model8, aes(fill = est), colour = "transparent") +
-    scale_fill_viridis_c(na.value = "#440154FF", direction = -1, guide = "none", limits = c(1, 7)) +
-    theme_minimal() +
-    labs(title = "Full kriging predictions", subtitle = "Model 8"))
 
-
-# Model validation ----
-# plot all models
-ggsave(
-  file = "img/model_predictions.png", 
-  plot = (plt_mod1 + plt_mod2) / (plt_mod3 + plt_mod4) / (plt_mod5 + plt_mod6) / (plt_mod7 + plt_mod8),
-  width = 10, height = 16
-)
-
+# Output results ----
 # create single sf with all model predictions (negative because inverted scale)
+# also includes external skyglow measures
 pred_sf <- 
   skyglow %>% 
   mutate(
@@ -219,115 +179,51 @@ pred_sf <-
 
 write_rds(pred_sf, "data/pred_sf.rds")
 
-# Internal validation: model comparison (TODO)
-# Function for LOOCV of lm model (no kriging)
-# From https://stackoverflow.com/a/48114343 
-loocv_lm <- function(fit){
-  h <- lm.influence(fit)$h
-  mean((residuals(fit) / (1 - h))^2)
+# Plotting ----
+## All models ----
+# Function to plot predictions on map
+pred_map <- function(pred_sf, title, subtitle) {
+  ggplot() +
+    geom_sf(data = pred_sf, aes(fill = est), colour = "transparent") +
+    scale_fill_viridis_c(na.value = "transparent", direction = -1, guide = "none", limits = c(0, 8)) +
+    theme_minimal() +
+    labs(title = title, subtitle = subtitle)
 }
 
-# LOOCV model 1
-loocv_mod2 <- krige.cv(
-  formula   = sky_brightness ~ 1,
-  locations = gan_jitter %>% filter(!is.na(sky_brightness)), 
-  model     = mod_vario,
-  debug.level = -1
+# Create plots
+plt_1 <- pred_map(pred_sf = pred_model1, title = "Naïve predictions",               subtitle = "Model 1")
+plt_2 <- pred_map(pred_sf = pred_model2, title = "Kriging predictions",             subtitle = "Model 2")
+plt_3 <- pred_map(pred_sf = pred_model3, title = "Land-use regression predictions", subtitle = "Model 3")
+plt_4 <- pred_map(pred_sf = pred_model4, title = "Land-use kriging predictions",    subtitle = "Model 4")
+plt_5 <- pred_map(pred_sf = pred_model5, title = "OSM regression predictions",      subtitle = "Model 5")
+plt_6 <- pred_map(pred_sf = pred_model6, title = "OSM kriging predictions",         subtitle = "Model 6")
+plt_7 <- pred_map(pred_sf = pred_model7, title = "Full regression predictions",     subtitle = "Model 7")
+plt_8 <- pred_map(pred_sf = pred_model8, title = "Full kriging predictions",        subtitle = "Model 8")
+
+# Save all plots
+ggsave(
+  file = "img/model_predictions.png", 
+  plot = (plt_1 + plt_2) / (plt_3 + plt_4) / (plt_5 + plt_6) / (plt_7 + plt_8),
+  width = 10, height = 16
 )
-write_rds(loocv_mod2, "data/loocv_mod2.rds")
 
-# LOOCV model 4
-loocv_mod4 <- krige.cv(
-  formula   = frm_lur,
-  locations = gan_jitter %>% filter(!is.na(sky_brightness)), 
-  model     = mod_vario_lur,
-  debug.level = -1
-)
-write_rds(loocv_mod4, "data/loocv_mod4.rds")
-
-# LOOCV model 6
-loocv_mod6 <- krige.cv(
-  formula   = frm_osm,
-  locations = gan_jitter %>% filter(!is.na(sky_brightness)), 
-  model     = mod_vario_osm,
-  debug.level = -1
-)
-write_rds(loocv_mod6, "data/loocv_mod6.rds")
-
-# LOOCV model 8
-loocv_mod8 <- krige.cv(
-  formula   = frm_all,
-  locations = gan_jitter %>% filter(!is.na(sky_brightness)), 
-  model     = mod_vario_all,
-  debug.level = -1, 
-)
-write_rds(loocv_mod8, "data/loocv_mod8.rds")
-
-# Get the residuals 
-tibble(Model = 1:7, 
-       MSE   = c(mean(krige_pred_gan$residual^2), 
-                 loocv_lm(fit_model3),
-                 mean(krige_pred_lur_cv$residual^2, na.rm = T),
-                 loocv_lm(fit_model5), 
-                 mean(krige_pred_osm_cv$residual^2),
-                 loocv_lm(fit_model7),
-                 mean(krige_pred_all_cv$residual^2, na.rm = T)))
-# See how many NA's to determine severity
-krige_pred_lur_cv_resid <- as.data.frame(krige_pred_lur_cv$residual)
-sum(is.na(krige_pred_lur_cv_resid)) # 2 NA's
-krige_pred_all_cv_resid <- as.data.frame(krige_pred_all_cv$residual)
-sum(is.na(krige_pred_all_cv_resid)) # 3 NA's
-
-# External validation: compare the predictions to the (log-)skyglow
-# visual comparison
-pred_sf %>% 
-  as_tibble() %>%
-  pivot_longer(
-    starts_with("est"), 
-    names_to = c("Covariates", "Kriging"), 
-    names_sep = "_", 
-    names_prefix = "est_", 
-    values_to = "est"
-  ) %>% 
-  mutate(Kriging = as_factor(Kriging), Covariates = as_factor(Covariates)) %>% 
-  ggplot(aes(y = log_skyglow, x = est)) +
-  geom_pointdensity() + 
-  geom_smooth(colour = "black", se = FALSE, formula = y ~ x, method = "lm") +
-  scale_colour_viridis_c(guide = "none") +
+## Models 8 ----
+# Detailed image of plot 8 for in the paper
+states <- st_read("raw_data/us_states/cb_2018_us_state_5m.shp")
+penn_border <- states %>% filter(NAME == "Pennsylvania") %>% st_geometry() %>% st_transform(4326)
+ggplot() +
+  geom_sf(data = pred_model8, aes(fill = pmin(pmax(est, 0), 8)), colour = "transparent") +
+  geom_sf(data = penn_border, fill = "transparent") +
+  scale_fill_viridis_c(na.value = "#440154FF", direction = -1, guide = "none", limits = c(0, 8)) +
   theme_minimal() +
-  facet_grid(rows = vars(Covariates), cols = vars(Kriging), labeller = label_both) +
-  xlim(c(-9, 2)) +
-  ylim(-1.5, 4.5) +
-  labs(x = "Estimate", y = "Log observed skyglow")
+  labs(title = "Full kriging model predictions")
+ggsave(file = "img/pred_full_model.png", width = 6, height = 4)
 
-ggsave("img/comparison.png", width = 8, height = 6)
-
-# comparing correlation
-as_tibble(pred_sf) %>% 
-  select(log_skyglow, starts_with("est")) %>% 
-  cor(use = "pair", method = "spearman")
-
-cor.test(pred_sf$skyglow, pred_sf$est_Naive_No, method = "spearman")
-cor.test(pred_sf$skyglow, pred_sf$est_Naive_Yes, method = "spearman")
-cor.test(pred_sf$skyglow, pred_sf$est_Landuse_No, method = "spearman")
-cor.test(pred_sf$skyglow, pred_sf$est_Landuse_Yes, method = "spearman")
-cor.test(pred_sf$skyglow, pred_sf$est_OSM_No, method = "spearman")
-cor.test(pred_sf$skyglow, pred_sf$est_OSM_Yes, method = "spearman")
-cor.test(pred_sf$skyglow, pred_sf$est_Both_No, method = "spearman")
-cor.test(pred_sf$skyglow, pred_sf$est_Both_Yes, method = "spearman")
-
-# comparing R²
-tibble(
-  Model = 1:8, 
-  Rsq = c(summary(lm(log_skyglow ~ est_Naive_No, na.omit(pred_sf)))$r.squared,
-          summary(lm(log_skyglow ~ est_Naive_Yes, na.omit(pred_sf)))$r.squared,
-          summary(lm(log_skyglow ~ est_Landuse_No, na.omit(pred_sf)))$r.squared,
-          summary(lm(log_skyglow ~ est_Landuse_Yes, na.omit(pred_sf)))$r.squared,
-          summary(lm(log_skyglow ~ est_OSM_No, na.omit(pred_sf)))$r.squared,
-          summary(lm(log_skyglow ~ est_OSM_Yes, na.omit(pred_sf)))$r.squared,
-          summary(lm(log_skyglow ~ est_Both_No, na.omit(pred_sf)))$r.squared,
-          summary(lm(log_skyglow ~ est_Both_Yes, na.omit(pred_sf)))$r.squared)
-)
-
-# It takes an hour to run this, so save workspace for now
-save.image("workspace_model.RData")
+# plot difference between p7 and p8
+pred_model8 %>% 
+  mutate(est = pred_model7$est - est) %>%
+  ggplot() +
+  geom_sf(aes(fill = est), colour = "transparent") +
+  scale_fill_gradient2(high = scales::muted("red"), 
+                       low = scales::muted("blue")) +
+  theme_minimal()

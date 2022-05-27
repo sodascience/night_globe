@@ -54,11 +54,12 @@ gan_circles <-
   st_geometry() %>% 
   st_buffer(sqrt(25/pi)*1000)
 
-landuse_props <- pbsapply(gan_circles, \(circ) landuse %>% st_crop(circ) %>% table() %>% prop.table())
+landuse_props <- pbsapply(gan_circles, function(circ) landuse %>% st_crop(circ) %>% table() %>% prop.table())
 
 landuse_tbl <- 
   as_tibble(t(landuse_props)[,-1], .name_repair = "minimal") %>% 
-  set_names(\(num) paste0("landtype_", num))
+  set_names(function(num) paste0("landtype_", num)) %>%
+  select(-landtype_21)
 
 gan <- bind_cols(gan, landuse_tbl)
 
