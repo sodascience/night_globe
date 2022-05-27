@@ -160,7 +160,6 @@ pred_model8 <-
 
 write_rds(pred_model8, "data/model_fits/pred_model8.rds")
 
-
 # Output results ----
 # create single sf with all model predictions (negative because inverted scale)
 # also includes external skyglow measures

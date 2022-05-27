@@ -31,6 +31,7 @@ pred_sf %>%
 
 ggsave("img/external_validation.png", width = 6, height = 7)
 
+
 # comparing correlation
 as_tibble(pred_sf) %>% 
   select(log_skyglow, starts_with("est")) %>% 
