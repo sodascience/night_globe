@@ -158,6 +158,8 @@ pred_model8 <-
   mutate(est = krige_pred_all$var1.pred, 
          var = krige_pred_all$var1.var)
 
+write_rds(pred_model8, "data/model_fits/pred_model8.rds")
+
 
 # Output results ----
 # create single sf with all model predictions (negative because inverted scale)
