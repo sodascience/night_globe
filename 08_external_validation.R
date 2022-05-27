@@ -27,9 +27,10 @@ pred_sf %>%
   facet_grid(rows = vars(Covariates), cols = vars(Kriging), labeller = label_both) +
   xlim(c(-9, 2)) +
   ylim(-1.5, 4.5) +
-  labs(x = "Estimate", y = "Log observed skyglow")
+  labs(x = "Globe at Night prediction (negative)", y = "Log observed skyglow")
 
-ggsave("img/comparison.png", width = 8, height = 12)
+ggsave("img/external_validation.png", width = 6, height = 7)
+
 
 # comparing correlation
 as_tibble(pred_sf) %>% 
