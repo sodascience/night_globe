@@ -17,7 +17,7 @@ ggplot() +
   geom_sf(data = ways$osm_lines, colour = "grey", size = 1) +
   geom_sf(data = penn_border, fill = "transparent") +
   scale_colour_viridis_c(trans = "log10", na.value = "transparent", begin = 1, end = 0) +
-  theme_minimal() +
+  theme_minimal(base_size = 14) +
   labs(
     title    = "Highways extracted from OpenStreetMaps", 
     subtitle = "Pennsylvania"

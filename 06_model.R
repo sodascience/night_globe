@@ -187,7 +187,7 @@ pred_map <- function(pred_sf, title, subtitle) {
   ggplot() +
     geom_sf(data = pred_sf, aes(fill = est), colour = "transparent") +
     scale_fill_viridis_c(na.value = "transparent", direction = -1, guide = "none", limits = c(0, 8)) +
-    theme_minimal() +
+    theme_minimal(base_size = 14) +
     labs(title = title, subtitle = subtitle)
 }
 
@@ -208,23 +208,28 @@ ggsave(
   width = 10, height = 16
 )
 
-## Models 8 ----
+## Model 8 ----
 # Detailed image of plot 8 for in the paper
 states <- st_read("raw_data/us_states/cb_2018_us_state_5m.shp")
 penn_border <- states %>% filter(NAME == "Pennsylvania") %>% st_geometry() %>% st_transform(4326)
 ggplot() +
   geom_sf(data = pred_model8, aes(fill = pmin(pmax(est, 0), 8)), colour = "transparent") +
   geom_sf(data = penn_border, fill = "transparent") +
-  scale_fill_viridis_c(na.value = "#440154FF", direction = -1, guide = "none", limits = c(0, 8)) +
-  theme_minimal() +
-  labs(title = "Full kriging model predictions")
-ggsave(file = "img/pred_full_model.png", width = 6, height = 4)
+  scale_fill_viridis_c(na.value = "#440154FF", direction = -1, limits = c(0, 8)) +
+  theme_minimal(base_size = 14) +
+  labs(title = "Full kriging model predictions", fill = "Predicted skyglow")
+ggsave(file = "img/pred_full_model.png", width = 10, height = 6)
 
 # plot difference between p7 and p8
 pred_model8 %>% 
   mutate(est = pred_model7$est - est) %>%
   ggplot() +
   geom_sf(aes(fill = est), colour = "transparent") +
+  geom_sf(data = penn_border, fill = "transparent") +
   scale_fill_gradient2(high = scales::muted("red"), 
                        low = scales::muted("blue")) +
-  theme_minimal()
+  theme_minimal(base_size = 14) +
+  labs(title = "Kriging effect", 
+       subtitle = "Difference between full models with and without kriging",
+       fill = "Prediction difference\n(no kriging - kriging)")
+ggsave(file = "img/kringing_effect.png", width = 10, height = 6)

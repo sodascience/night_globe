@@ -67,14 +67,14 @@ plt_radiance <-
   geom_sf(colour = NA) +
   scale_fill_viridis_c(trans = "log10", limits = c(0.2, 100)) +
   labs(fill = "", title = "Radiance", subtitle = "Mean radiance on 5x5 km grid") +
-  theme_minimal()
+  theme_minimal(base_size = 14)
 
 plt_skyglow <- 
-  ggplot(sg_grid, aes(fill = skyglow)) + 
+  ggplot(sg_rd_grid, aes(fill = skyglow)) + 
   geom_sf(colour = NA) + 
   scale_fill_viridis_c(trans = "log10", limits = c(0.2, 100)) + 
   labs(fill = "", title = "Skyglow", subtitle = "Walker's law on 5x5 km grid") +
-  theme_minimal()
+  theme_minimal(base_size = 14)
 
 plt_radiance / plt_skyglow
 

@@ -23,7 +23,7 @@ pred_sf %>%
   geom_pointdensity() + 
   geom_smooth(colour = "black", se = FALSE, formula = y ~ x, method = "lm") +
   scale_colour_viridis_c(guide = "none") +
-  theme_minimal() +
+  theme_minimal(base_size = 14) +
   facet_grid(rows = vars(Covariates), cols = vars(Kriging), labeller = label_both) +
   xlim(c(-9, 2)) +
   ylim(-1.5, 4.5) +

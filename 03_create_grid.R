@@ -29,7 +29,7 @@ grid_pred <- grid_penn %>% st_transform(4326) %>% st_sf()
 ggplot() +
   geom_sf(data = penn_proj, size = 1, fill = "#BAFADA", colour = "black") +
   geom_sf(data = grid_pred, fill = "transparent") + 
-  theme_minimal() + 
+  theme_minimal(base_size = 14) + 
   labs(title = "Prediction grid with 5 x 5 km cells", subtitle = "CRS EPSG:32717")
 
 ggsave("img/grid_pred.png", width = 8, height = 6)

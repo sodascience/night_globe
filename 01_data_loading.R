@@ -56,7 +56,7 @@ ggplot() +
   geom_sf(data = gan, aes(colour = sky_brightness)) +
   geom_sf(data = penn_border, fill = "transparent") +
   scale_colour_viridis_c(trans = "log10", na.value = "transparent", begin = 1, end = 0) +
-  theme_minimal() +
+  theme_minimal(base_size = 14) +
   labs(
     colour   = "Sky brightness", 
     title    = "Globe at Night observations in 2020", 
@@ -78,7 +78,7 @@ ggplot() +
   geom_stars(data = radiance_penn, downsample = 2) + 
   geom_sf(data = penn_border, fill = "transparent", size = 1, colour = "white") +
   scale_fill_viridis_c(trans = "log10", na.value = "transparent") +
-  theme_minimal() +
+  theme_minimal(base_size = 14) +
   labs(
     fill     = "Median radiance",
     title    = "Satellite-measured radiance in 2020",
@@ -118,7 +118,7 @@ ggplot() +
   geom_stars(data = landuse_penn, downsample = 2) + 
   geom_sf(data = penn_border, fill = "transparent", size = 1, colour = "white") +
   scale_fill_viridis_d(na.value = "transparent", direction = -1) +
-  theme_minimal() +
+  theme_minimal(base_size = 14) +
   labs(
     fill = "Land type",
     x = "",

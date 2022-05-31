@@ -68,13 +68,13 @@ ggplot() +
   geom_stars(data = landuse, downsample = 2) + 
   geom_sf(data = gan_circles, fill = "transparent", colour = "black") +
   scale_fill_viridis_d(na.value = "transparent", direction = -1) +
-  theme_minimal() +
+  theme_minimal(base_size = 14) +
   labs(
     fill = "Land type",
     x = "",
     y = "",
     title = "Globe at Night observation enrichment",
-    subtitle = "Using circles of 25 m²"
+    subtitle = "Using circles of 25 km²"
   )
 
 
