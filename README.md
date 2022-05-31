@@ -1,4 +1,9 @@
 # Correcting inferences for volunteer-collected data with geospatial sampling bias
+
+
+[![DOI](https://zenodo.org/badge/379621562.svg)](https://zenodo.org/badge/latestdoi/379621562)
+
+
 Repository containing reproducible code belonging to the manuscript _"Correcting inferences for volunteer-collected data with geospatial sampling bias"_ by Peter Lugtig, Annemarie Timmers, and Erik-Jan van Kesteren
 
 ## Reproducing the analysis
