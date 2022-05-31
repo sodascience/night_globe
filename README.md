@@ -1,5 +1,12 @@
-# Correcting inferences in volunteer data using geospatial covariates.
+# Correcting inferences for volunteer-collected data with geospatial sampling bias
+Repository containing reproducible code belonging to the manuscript _"Correcting inferences for volunteer-collected data with geospatial sampling bias"_ by Peter Lugtig, Annemarie Timmers, and Erik-Jan van Kesteren
 
+## Reproducing the analysis
+This is an R project with packages managed by `renv`, on R version `4.1.2`. Clone or download this repository, enter the folder and open the project file (`night_globe.Rproj`) in RStudio. Then, if you have installed the `renv` package, run `renv::restore()` to obtain the right versions of all packages used.
+
+The starting point is the file [`01_data_loading.R`](./01_data_loading.R)
+
+## Extended description
 The Globe at Night project contains volunteer-collected data about the brightness of the sky. For example, in Pennsylvania in 2020, the following observations were made:
 ![](/img/raw_gan.png)
 
@@ -17,13 +24,13 @@ Using different models with increasing levels of complexity we obtain the follow
 
 ![](/img/model_predictions.png)
 
-We can then externally validate these models by comparing them against (log-)skyglow measurements derived from satellite imagery:
+We validate these internally, using leave-one-out cross-validation. There, we conclude that the most complex model (model 8, with all covariates and kriging) leads to the best out-of-sample prediction performance.
+
+We can additionally externally validate these models by comparing them against (log-)skyglow measurements derived from satellite imagery:
 
 ![](/img/skyglow.png)
 
-The results show that the model with the OSM highway covariate without kriging best approximates the log-skyglow in Pennsylvania (R² = .35).
-
-![](/img/comparison.png)
+![](/img/external_validation.png)
 
 ## Contact
 
